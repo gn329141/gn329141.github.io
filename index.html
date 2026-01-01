@@ -200,13 +200,11 @@
             // 更新按鈕樣式
             updateButtonStyles(mode);
 
-            if (mode === 'all') {
-                // 如果切換回全部，不特別清空數量，保留操作結果，只解除過濾
-                renderList();
-            } else {
-                // 如果是選組合，先歸零再設定數量
-                items.forEach(item => item.qty = 0);
-                
+            // 無論切換到哪個模式（包含自選金紙），都先將所有數量歸零，符合使用者需求
+            items.forEach(item => item.qty = 0);
+
+            if (mode !== 'all') {
+                // 如果是選組合，依照組合設定數量
                 const comboDef = combos[mode];
                 for (const [name, qty] of Object.entries(comboDef)) {
                     const item = items.find(i => i.name === name);
@@ -214,8 +212,9 @@
                         item.qty = qty;
                     }
                 }
-                renderList();
             }
+            // 如果是 'all' (自選金紙)，上面已經歸零了，直接渲染即可
+            renderList();
         }
 
         function updateButtonStyles(activeMode) {
@@ -412,4 +411,3 @@
     </script>
 </body>
 </html>
-

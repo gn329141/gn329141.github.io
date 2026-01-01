@@ -24,6 +24,12 @@
         .tap-highlight-transparent {
             -webkit-tap-highlight-color: transparent;
         }
+        /* 組合按鈕選中樣式 */
+        .btn-check:checked + label {
+            background-color: #b91c1c; /* red-700 */
+            color: white;
+            border-color: #b91c1c;
+        }
     </style>
 </head>
 <body class="bg-stone-100 text-stone-800 font-sans text-lg">
@@ -43,6 +49,19 @@
                 <input type="text" id="searchInput" placeholder="搜尋品項..." 
                     class="w-full py-2 pl-12 pr-4 bg-red-900/50 border border-red-700 rounded-xl text-yellow-50 placeholder-red-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 text-xl">
             </div>
+        </div>
+        
+        <!-- 快速組合按鈕 -->
+        <div class="mt-3 max-w-2xl mx-auto grid grid-cols-3 gap-2">
+            <button onclick="applyCombo('all')" id="btn-all" class="bg-yellow-100 text-stone-800 font-bold py-2 px-1 rounded-lg border border-yellow-600 shadow-sm text-base active:bg-yellow-200 transition">
+                顯示全部
+            </button>
+            <button onclick="applyCombo('A')" id="btn-A" class="bg-stone-200 text-stone-600 font-bold py-2 px-1 rounded-lg border border-stone-300 shadow-sm text-base active:bg-red-700 active:text-white transition">
+                A:祝壽組合($800)
+            </button>
+            <button onclick="applyCombo('B')" id="btn-B" class="bg-stone-200 text-stone-600 font-bold py-2 px-1 rounded-lg border border-stone-300 shadow-sm text-base active:bg-red-700 active:text-white transition">
+                B:祝壽組合($600)
+            </button>
         </div>
     </header>
 
@@ -101,7 +120,7 @@
             { name: "大福金", price: 25 },
             { name: "天庫", price: 30 },
             { name: "地庫", price: 30 },
-            { name: "水庫", price: 30 },
+            { name: "水府", price: 30 },
             { name: "補運錢", price: 55 },
             { name: "改厄", price: 35 },
             { name: "小往生", price: 55 },
@@ -121,16 +140,50 @@
             { name: "路關錢", price: 35 },
             { name: "蓮花金", price: 40 },
             { name: "蓮花銀", price: 40 },
-            { name: "壽生花朵座", price: 120 },
+            { name: "壽生蓮花座", price: 120 },
             { name: "壽生花朵", price: 60 },
-            { name: "往生花朵座", price: 120 },
+            { name: "往生蓮花座", price: 120 },
             { name: "往生花朵", price: 60 },
             { name: "五路財神金", price: 80 },
             { name: "土地公金", price: 80 }
         ];
 
-        // 初始化狀態，每項數量預設為 0
+        // 組合定義 (注意：燭2號已在最後，顯示邏輯會遵照此順序)
+        const combos = {
+            'A': {
+                "太極金": 1,
+                "天尺金": 2,
+                "大壽金": 1,
+                "壽金": 1,
+                "二五金": 1,
+                "大福金": 1,
+                "補運錢": 1,
+                "花仔錢": 1,
+                "十二元神金": 1,
+                "甲馬": 1,
+                "神馬": 1,
+                "將軍錢": 1,
+                "五路財神金": 1,
+                "土地公金": 1,
+                "燭2號": 1
+            },
+            'B': {
+                "太極金": 1,
+                "天尺金": 1,
+                "大壽金": 1,
+                "壽金": 1,
+                "二五金": 1,
+                "大福金": 1,
+                "補運錢": 1,
+                "五路財神金": 1,
+                "土地公金": 1,
+                "燭2號": 1
+            }
+        };
+
+        // 初始化狀態
         let items = productsData.map(p => ({ ...p, qty: 0 }));
+        let currentFilterMode = 'all'; // 'all', 'A', 'B'
 
         const productListEl = document.getElementById('productList');
         const searchInput = document.getElementById('searchInput');
@@ -139,25 +192,82 @@
         const toastEl = document.getElementById('toast');
         const remarksEl = document.getElementById('remarks');
 
+        // 套用組合
+        function applyCombo(mode) {
+            currentFilterMode = mode;
+            searchInput.value = ""; // 清空搜尋
+
+            // 更新按鈕樣式
+            updateButtonStyles(mode);
+
+            if (mode === 'all') {
+                // 如果切換回全部，不特別清空數量，保留操作結果，只解除過濾
+                renderList();
+            } else {
+                // 如果是選組合，先歸零再設定數量
+                items.forEach(item => item.qty = 0);
+                
+                const comboDef = combos[mode];
+                for (const [name, qty] of Object.entries(comboDef)) {
+                    const item = items.find(i => i.name === name);
+                    if (item) {
+                        item.qty = qty;
+                    }
+                }
+                renderList();
+            }
+        }
+
+        function updateButtonStyles(activeMode) {
+            const btnAll = document.getElementById('btn-all');
+            const btnA = document.getElementById('btn-A');
+            const btnB = document.getElementById('btn-B');
+
+            // Reset base styles
+            const inactiveClass = "bg-stone-200 text-stone-600 border-stone-300";
+            const activeClass = "bg-red-700 text-white border-red-800 ring-2 ring-yellow-400";
+            const allActiveClass = "bg-yellow-500 text-white border-yellow-600 ring-2 ring-white";
+
+            btnAll.className = `font-bold py-2 px-1 rounded-lg border shadow-sm text-base transition ${activeMode === 'all' ? allActiveClass : 'bg-yellow-100 text-stone-800 border-yellow-600'}`;
+            btnA.className = `font-bold py-2 px-1 rounded-lg border shadow-sm text-base transition ${activeMode === 'A' ? activeClass : inactiveClass}`;
+            btnB.className = `font-bold py-2 px-1 rounded-lg border shadow-sm text-base transition ${activeMode === 'B' ? activeClass : inactiveClass}`;
+        }
+
+
         // 渲染列表
-        function renderList(filterText = "") {
+        function renderList(searchQuery = "") {
             productListEl.innerHTML = "";
             
-            const filteredItems = items.filter(item => 
-                item.name.includes(filterText)
-            );
+            // 決定要顯示哪些項目
+            let displayItems = [];
 
-            if (filteredItems.length === 0) {
+            if (searchQuery) {
+                // 如果有搜尋字串，優先依搜尋字串過濾 (此時忽略組合模式，顯示搜尋結果)
+                displayItems = items.filter(item => item.name.includes(searchQuery));
+                // 搜尋時把模式視覺上設為 All 比較合理
+                updateButtonStyles('temp'); 
+            } else if (currentFilterMode !== 'all') {
+                // 依照組合過濾，並***依照組合定義的順序顯示*** (這樣燭2號才會在最後)
+                const comboDef = combos[currentFilterMode];
+                displayItems = Object.keys(comboDef)
+                    .map(name => items.find(item => item.name === name))
+                    .filter(item => item); // 過濾掉 undefined
+            } else {
+                // 顯示全部 (依照原始資料順序)
+                displayItems = items;
+            }
+
+            if (displayItems.length === 0) {
                 productListEl.innerHTML = `
                     <div class="text-center text-stone-400 py-12">
                         <i class="fa-solid fa-box-open text-5xl mb-4"></i>
                         <p class="text-xl">找不到相關金紙</p>
                     </div>`;
+                updateSummary();
                 return;
             }
 
-            filteredItems.forEach((item, index) => {
-                // 在原始陣列中的索引，確保更新正確
+            displayItems.forEach((item) => {
                 const realIndex = items.findIndex(i => i.name === item.name);
                 
                 const card = document.createElement('div');
@@ -194,8 +304,7 @@
             const newQty = items[index].qty + change;
             if (newQty >= 0) {
                 items[index].qty = newQty;
-                // 只重新渲染該項目可能會比較複雜，這裡簡單起見重新渲染列表，
-                // 但為了使用者體驗，理想狀況是只更新DOM，不過考慮到搜尋過濾，全渲染較安全且現代手機夠快
+                // 更新時保持目前的過濾狀態
                 renderList(searchInput.value);
             }
         }
@@ -226,7 +335,7 @@
                 items.forEach(item => item.qty = 0);
                 searchInput.value = "";
                 remarksEl.value = ""; // 清空備註
-                renderList();
+                applyCombo('all'); // 重置回顯示全部
                 window.scrollTo(0,0);
             }
         }
@@ -240,6 +349,10 @@
             }
 
             let text = "【金紙費用明細】\n";
+            // 如果是組合模式，可以標記一下
+            if (currentFilterMode === 'A') text += "(A:祝壽組合)\n";
+            if (currentFilterMode === 'B') text += "(B:祝壽組合)\n";
+
             let total = 0;
             selectedItems.forEach(item => {
                 const subtotal = item.price * item.qty;
@@ -289,6 +402,7 @@
 
         // 搜尋監聽
         searchInput.addEventListener('input', (e) => {
+            // 搜尋時不強制切換模式，但列表渲染會優先看搜尋字串
             renderList(e.target.value);
         });
 

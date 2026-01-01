@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>金紙費用計算(宮生版)</title>
+    <title>金紙費用計算</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -30,6 +30,18 @@
             color: white;
             border-color: #b91c1c;
         }
+        /* 身分切換按鈕樣式 */
+        .role-btn.active {
+            background-color: #991b1b; /* red-800 */
+            color: #fefce8; /* yellow-50 */
+            border-color: #ca8a04; /* yellow-600 */
+            font-weight: bold;
+        }
+        .role-btn {
+            background-color: #fca5a5; /* red-300 */
+            color: #7f1d1d; /* red-900 */
+            border-color: transparent;
+        }
     </style>
 </head>
 <body class="bg-stone-100 text-stone-800 font-sans text-lg">
@@ -37,30 +49,32 @@
     <!-- 頂部標題 -->
     <header class="bg-red-800 text-yellow-50 p-4 sticky top-0 z-50 shadow-md">
         <div class="flex justify-between items-center max-w-2xl mx-auto">
-            <h1 class="text-2xl font-bold tracking-wider"><i class="fa-solid fa-scroll mr-2"></i>金紙費用計算</h1>
-            <span class="text-sm bg-red-900 px-3 py-1 rounded border border-yellow-600 font-bold">宮生版</span>
-        </div>
-        <!-- 搜尋欄 -->
-        <div class="mt-3 max-w-2xl mx-auto">
-            <div class="relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-red-300 text-xl">
-                    <i class="fa-solid fa-search"></i>
-                </span>
-                <input type="text" id="searchInput" placeholder="搜尋品項..." 
-                    class="w-full py-2 pl-12 pr-4 bg-red-900/50 border border-red-700 rounded-xl text-yellow-50 placeholder-red-300 focus:outline-none focus:ring-2 focus:ring-yellow-500 text-xl">
+            <h1 class="text-2xl font-bold tracking-wider flex items-center">
+                <i class="fa-solid fa-scroll mr-2"></i>
+                <span>金紙費用計算</span>
+            </h1>
+            
+            <!-- 身分切換區 -->
+            <div class="flex bg-red-900/50 rounded-lg p-1 space-x-1">
+                <button onclick="switchRole('gong_sheng')" id="role-gong-sheng" class="role-btn active px-3 py-1 rounded text-base transition-colors duration-200">
+                    宮生
+                </button>
+                <button onclick="switchRole('believer')" id="role-believer" class="role-btn px-3 py-1 rounded text-base transition-colors duration-200">
+                    信者
+                </button>
             </div>
         </div>
         
-        <!-- 快速組合按鈕 -->
-        <div class="mt-3 max-w-2xl mx-auto grid grid-cols-3 gap-2">
+        <!-- 快速組合按鈕 (容器ID用於JS控制grid欄位) -->
+        <div id="combo-btn-container" class="mt-3 max-w-2xl mx-auto grid grid-cols-3 gap-2 transition-all duration-300">
             <button onclick="applyCombo('all')" id="btn-all" class="bg-yellow-100 text-stone-800 font-bold py-2 px-1 rounded-lg border border-yellow-600 shadow-sm text-base active:bg-yellow-200 transition">
                 自選金紙
             </button>
             <button onclick="applyCombo('A')" id="btn-A" class="bg-stone-200 text-stone-600 font-bold py-2 px-1 rounded-lg border border-stone-300 shadow-sm text-base active:bg-red-700 active:text-white transition">
-                A:個人祝壽組合$800
+                A:祝壽組合($800)
             </button>
             <button onclick="applyCombo('B')" id="btn-B" class="bg-stone-200 text-stone-600 font-bold py-2 px-1 rounded-lg border border-stone-300 shadow-sm text-base active:bg-red-700 active:text-white transition">
-                B:個人祝壽組合$600
+                B:祝壽組合($600)
             </button>
         </div>
     </header>
@@ -110,8 +124,8 @@
     </div>
 
     <script>
-        // 定義資料
-        const productsData = [
+        // 定義宮生資料 (原本的)
+        const productsDataGongSheng = [
             { name: "太極金", price: 30 },
             { name: "天尺金", price: 20 },
             { name: "大壽金", price: 65 },
@@ -120,7 +134,7 @@
             { name: "大福金", price: 25 },
             { name: "天庫", price: 30 },
             { name: "地庫", price: 30 },
-            { name: "水府", price: 30 },
+            { name: "水府", price: 30 }, // 宮生版使用水府
             { name: "補運錢", price: 55 },
             { name: "改厄", price: 35 },
             { name: "小往生", price: 55 },
@@ -146,6 +160,45 @@
             { name: "往生花朵", price: 60 },
             { name: "五路財神金", price: 80 },
             { name: "土地公金", price: 80 }
+        ];
+
+        // 定義信者資料 (新價格)
+        const productsDataBeliever = [
+            { name: "太極金", price: 35 },
+            { name: "天尺金", price: 25 },
+            { name: "大壽金", price: 70 },
+            { name: "壽金", price: 45 },
+            { name: "二五金", price: 30 },
+            { name: "大福金", price: 30 },
+            { name: "天府", price: 35 }, // 信者版改成天府
+            { name: "地庫", price: 35 },
+            { name: "水庫", price: 35 }, // 信者版使用水庫
+            { name: "補運錢", price: 60 },
+            { name: "改厄", price: 40 },
+            { name: "小往生", price: 60 },
+            { name: "銀紙", price: 35 },
+            { name: "更衣", price: 40 },
+            { name: "本命錢", price: 40 },
+            { name: "花仔錢", price: 45 },
+            { name: "地府錢", price: 40 },
+            { name: "燭2號", price: 220 },
+            { name: "庫錢", price: 25 },
+            { name: "十二元神金", price: 40 },
+            { name: "白虎錢", price: 40 },
+            { name: "甲馬", price: 40 },
+            { name: "神馬", price: 40 },
+            { name: "將軍錢", price: 40 },
+            { name: "過關錢", price: 40 },
+            { name: "路關錢", price: 40 },
+            { name: "蓮花金", price: 45 },
+            { name: "蓮花銀", price: 45 },
+            { name: "壽生蓮花座", price: 150 },
+            { name: "壽生花朵", price: 80 },
+            { name: "往生花朵座", price: 150 }, // 信者版改名為往生花朵座
+            { name: "往生花朵", price: 80 },
+            { name: "五路財神金", price: 85 },
+            { name: "土地公金", price: 85 },
+            { name: "燭3號", price: 150 } // 新增項目
         ];
 
         // 組合定義 (注意：燭2號已在最後，顯示邏輯會遵照此順序)
@@ -181,26 +234,80 @@
             }
         };
 
-        // 初始化狀態
-        let items = productsData.map(p => ({ ...p, qty: 0 }));
+        // 初始化狀態 (預設宮生)
+        let currentRole = 'gong_sheng'; // 'gong_sheng' or 'believer'
+        let items = productsDataGongSheng.map(p => ({ ...p, qty: 0 }));
         let currentFilterMode = 'all'; // 'all', 'A', 'B'
 
         const productListEl = document.getElementById('productList');
-        const searchInput = document.getElementById('searchInput');
         const totalPriceEl = document.getElementById('totalPrice');
         const totalQtyEl = document.getElementById('totalQty');
         const toastEl = document.getElementById('toast');
         const remarksEl = document.getElementById('remarks');
 
+        // 切換身分
+        function switchRole(role) {
+            if (currentRole === role) return;
+
+            // UI 邏輯：處理組合按鈕顯示
+            const btnContainer = document.getElementById('combo-btn-container');
+            const btnA = document.getElementById('btn-A');
+            const btnB = document.getElementById('btn-B');
+            const btnAll = document.getElementById('btn-all');
+
+            if (role === 'believer') {
+                // 信者模式：隱藏 A/B 組合，強制切回顯示全部
+                btnA.style.display = 'none';
+                btnB.style.display = 'none';
+                btnContainer.classList.remove('grid-cols-3');
+                btnContainer.classList.add('grid-cols-1');
+                btnAll.innerText = "信者自選金紙";
+                
+                // 強制切換到 'all' 模式，避免停留在組合模式
+                applyCombo('all');
+            } else {
+                // 宮生模式：顯示組合
+                btnA.style.display = ''; // 恢復預設
+                btnB.style.display = '';
+                btnContainer.classList.remove('grid-cols-1');
+                btnContainer.classList.add('grid-cols-3');
+                btnAll.innerText = "自選金紙";
+            }
+
+            // 1. 記錄目前數量的雜湊表 (以名稱為 key)
+            const currentQtyMap = {};
+            items.forEach(item => {
+                if (item.qty > 0) {
+                    currentQtyMap[item.name] = item.qty;
+                }
+            });
+
+            // 2. 切換資料來源
+            currentRole = role;
+            const newDataTemplate = role === 'believer' ? productsDataBeliever : productsDataGongSheng;
+
+            // 3. 建立新 items 陣列並嘗試恢復數量
+            items = newDataTemplate.map(p => {
+                const preservedQty = currentQtyMap[p.name] || 0;
+                return { ...p, qty: preservedQty };
+            });
+
+            // 4. 更新UI樣式
+            document.getElementById('role-gong-sheng').className = `role-btn ${role === 'gong_sheng' ? 'active' : ''} px-3 py-1 rounded text-base transition-colors duration-200`;
+            document.getElementById('role-believer').className = `role-btn ${role === 'believer' ? 'active' : ''} px-3 py-1 rounded text-base transition-colors duration-200`;
+
+            // 5. 重新渲染
+            renderList();
+        }
+
         // 套用組合
         function applyCombo(mode) {
             currentFilterMode = mode;
-            searchInput.value = ""; // 清空搜尋
 
             // 更新按鈕樣式
             updateButtonStyles(mode);
 
-            // 無論切換到哪個模式（包含自選金紙），都先將所有數量歸零，符合使用者需求
+            // 無論切換到哪個模式（包含自選金紙），都先將所有數量歸零
             items.forEach(item => item.qty = 0);
 
             if (mode !== 'all') {
@@ -234,23 +341,18 @@
 
 
         // 渲染列表
-        function renderList(searchQuery = "") {
+        function renderList() {
             productListEl.innerHTML = "";
             
             // 決定要顯示哪些項目
             let displayItems = [];
 
-            if (searchQuery) {
-                // 如果有搜尋字串，優先依搜尋字串過濾 (此時忽略組合模式，顯示搜尋結果)
-                displayItems = items.filter(item => item.name.includes(searchQuery));
-                // 搜尋時把模式視覺上設為 All 比較合理
-                updateButtonStyles('temp'); 
-            } else if (currentFilterMode !== 'all') {
-                // 依照組合過濾，並***依照組合定義的順序顯示*** (這樣燭2號才會在最後)
+            if (currentFilterMode !== 'all') {
+                // 依照組合過濾，並***依照組合定義的順序顯示***
                 const comboDef = combos[currentFilterMode];
                 displayItems = Object.keys(comboDef)
                     .map(name => items.find(item => item.name === name))
-                    .filter(item => item); // 過濾掉 undefined
+                    .filter(item => item); // 過濾掉 undefined (若該身分沒有該金紙)
             } else {
                 // 顯示全部 (依照原始資料順序)
                 displayItems = items;
@@ -304,7 +406,7 @@
             if (newQty >= 0) {
                 items[index].qty = newQty;
                 // 更新時保持目前的過濾狀態
-                renderList(searchInput.value);
+                renderList();
             }
         }
 
@@ -313,7 +415,7 @@
             let val = parseInt(value);
             if (isNaN(val) || val < 0) val = 0;
             items[index].qty = val;
-            renderList(searchInput.value);
+            renderList();
         }
 
         // 更新總計
@@ -332,7 +434,6 @@
         function resetAll() {
             if(confirm("確定要清除所有數量與備註嗎？")) {
                 items.forEach(item => item.qty = 0);
-                searchInput.value = "";
                 remarksEl.value = ""; // 清空備註
                 applyCombo('all'); // 重置回顯示全部
                 window.scrollTo(0,0);
@@ -348,9 +449,14 @@
             }
 
             let text = "【金紙費用明細】\n";
+            // 標註身分
+            text += `身分: ${currentRole === 'gong_sheng' ? '宮生' : '信者'}\n`;
+
             // 如果是組合模式，可以標記一下
-            if (currentFilterMode === 'A') text += "(A:祝壽組合)\n";
-            if (currentFilterMode === 'B') text += "(B:祝壽組合)\n";
+            if (currentRole === 'gong_sheng') {
+                 if (currentFilterMode === 'A') text += "(A:祝壽組合)\n";
+                 if (currentFilterMode === 'B') text += "(B:祝壽組合)\n";
+            }
 
             let total = 0;
             selectedItems.forEach(item => {
@@ -399,16 +505,9 @@
             }, 2000);
         }
 
-        // 搜尋監聽
-        searchInput.addEventListener('input', (e) => {
-            // 搜尋時不強制切換模式，但列表渲染會優先看搜尋字串
-            renderList(e.target.value);
-        });
-
         // 初始渲染
         renderList();
 
     </script>
 </body>
 </html>
-

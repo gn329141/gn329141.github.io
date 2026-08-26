@@ -24,35 +24,28 @@
         .tap-highlight-transparent {
             -webkit-tap-highlight-color: transparent;
         }
-        /* 組合按鈕選中樣式 */
-        .btn-check:checked + label {
-            background-color: #b91c1c; /* red-700 */
-            color: white;
-            border-color: #b91c1c;
-        }
         /* 身分切換按鈕樣式 - 亮燈效果優化 */
         .role-btn {
             background-color: transparent;
-            color: #fca5a5; /* red-300 暗淡紅 */
+            color: #fca5a5;
             border: 1px solid transparent;
             opacity: 0.7;
-            transition: all 0.3s ease; /* 增加過渡動畫 */
+            transition: all 0.3s ease;
         }
         .role-btn.active {
-            background-color: #dc2626; /* red-600 鮮豔紅 */
-            color: #fffbeb; /* amber-50 亮白黃 */
-            border: 1px solid #fbbf24; /* amber-400 金邊 */
-            box-shadow: 0 0 10px rgba(251, 191, 36, 0.6), inset 0 0 5px rgba(255, 255, 255, 0.2); /* 外發光 + 內高光 */
+            background-color: #dc2626;
+            color: #fffbeb;
+            border: 1px solid #fbbf24;
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.6), inset 0 0 5px rgba(255, 255, 255, 0.2);
             font-weight: bold;
             opacity: 1;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3); /* 文字立體感 */
-            transform: scale(1.05); /* 微微放大 */
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            transform: scale(1.05);
         }
     </style>
 </head>
 <body class="bg-stone-100 text-stone-800 font-sans text-lg">
 
-    <!-- 頂部標題 -->
     <header class="bg-red-800 text-yellow-50 p-4 sticky top-0 z-50 shadow-md">
         <div class="flex justify-between items-center max-w-2xl mx-auto">
             <h1 class="text-2xl font-bold tracking-wider flex items-center">
@@ -71,7 +64,7 @@
             </div>
         </div>
         
-        <!-- 快速組合按鈕 (容器ID用於JS控制grid欄位) -->
+        <!-- 快速組合按鈕 -->
         <div id="combo-btn-container" class="mt-3 max-w-2xl mx-auto grid grid-cols-3 gap-2 transition-all duration-300">
             <button onclick="applyCombo('all')" id="btn-all" class="bg-yellow-100 text-stone-800 font-bold py-2 px-1 rounded-lg border border-yellow-600 shadow-sm text-base active:bg-yellow-200 transition">
                 自選金紙
@@ -85,7 +78,6 @@
         </div>
     </header>
 
-    <!-- 主要列表區域 -->
     <main class="p-2 max-w-2xl mx-auto" id="productList">
         <!-- JS 將會在這裡渲染列表 -->
     </main>
@@ -101,8 +93,7 @@
         </div>
     </section>
 
-    <!-- 底部總計與操作區 -->
-    <footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-300 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50">
+    <footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-300 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-40">
         <div class="max-w-2xl mx-auto p-4">
             <div class="flex justify-between items-end mb-3">
                 <div class="text-lg text-stone-600">總數量: <span id="totalQty" class="font-bold text-stone-900 text-2xl">0</span></div>
@@ -113,7 +104,7 @@
             </div>
             
             <div class="grid grid-cols-2 gap-4">
-                <button onclick="resetAll()" class="bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold py-3 px-4 rounded-xl transition tap-highlight-transparent flex items-center justify-center text-xl">
+                <button onclick="showConfirmModal()" class="bg-stone-200 hover:bg-stone-300 text-stone-700 font-bold py-3 px-4 rounded-xl transition tap-highlight-transparent flex items-center justify-center text-xl">
                     <i class="fa-solid fa-rotate-left mr-2"></i> 清除
                 </button>
                 <button onclick="copySummary()" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded-xl shadow transition tap-highlight-transparent flex items-center justify-center text-xl">
@@ -123,210 +114,143 @@
         </div>
     </footer>
 
-    <!-- 複製成功提示框 -->
-    <div id="toast" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/80 text-white px-8 py-6 rounded-2xl shadow-2xl transition-opacity duration-300 opacity-0 pointer-events-none z-[60] flex flex-col items-center">
-        <i class="fa-solid fa-check-circle text-5xl text-green-400 mb-3"></i>
-        <span class="font-bold text-2xl">已複製</span>
+    <!-- 共用提示框 (取代 alert) -->
+    <div id="toast" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/80 text-white px-8 py-6 rounded-2xl shadow-2xl transition-opacity duration-300 opacity-0 pointer-events-none z-[60] flex flex-col items-center min-w-[200px]">
+        <i id="toastIcon" class="fa-solid fa-check-circle text-5xl text-green-400 mb-3"></i>
+        <span id="toastMsg" class="font-bold text-2xl text-center">已複製</span>
+    </div>
+
+    <!-- 自訂確認清除視窗 (取代 confirm) -->
+    <div id="confirmModal" class="fixed inset-0 bg-black/50 z-[70] hidden flex items-center justify-center opacity-0 transition-opacity duration-200">
+        <div class="bg-white rounded-2xl p-6 m-4 max-w-sm w-full shadow-2xl transform scale-95 transition-transform duration-200" id="confirmBox">
+            <h3 class="text-2xl font-bold text-stone-900 mb-2 flex items-center">
+                <i class="fa-solid fa-triangle-exclamation text-red-500 mr-2"></i> 確認清除
+            </h3>
+            <p class="text-stone-600 text-lg mb-6">確定要清除所有已選數量與備註嗎？</p>
+            <div class="flex space-x-3">
+                <button onclick="closeConfirmModal()" class="flex-1 py-3 bg-stone-200 text-stone-700 rounded-xl font-bold text-lg active:bg-stone-300 transition">取消</button>
+                <button onclick="executeReset()" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-lg active:bg-red-700 transition">確定清除</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        // 定義宮生資料 (原本的)
+        // 定義宮生資料
         const productsDataGongSheng = [
-            { name: "太極金", price: 30 },
-            { name: "天尺金", price: 20 },
-            { name: "大壽金", price: 65 },
-            { name: "壽金", price: 40 },
-            { name: "二五金", price: 25 },
-            { name: "大福金", price: 25 },
-            { name: "天庫", price: 30 },
-            { name: "地庫", price: 30 },
-            { name: "水府", price: 30 }, // 宮生版使用水府
-            { name: "補運錢", price: 55 },
-            { name: "改厄", price: 35 },
-            { name: "小往生", price: 55 },
-            { name: "銀紙", price: 30 },
-            { name: "更衣", price: 35 },
-            { name: "本命錢", price: 35 },
-            { name: "花仔錢", price: 40 },
-            { name: "地府錢", price: 35 },
-            { name: "燭2號", price: 180 },
-            { name: "庫錢", price: 20 },
-            { name: "十二元神金", price: 35 },
-            { name: "白虎錢", price: 35 },
-            { name: "甲馬", price: 35 },
-            { name: "神馬", price: 35 },
-            { name: "將軍錢", price: 35 },
-            { name: "過關錢", price: 35 },
-            { name: "路關錢", price: 35 },
-            { name: "蓮花金", price: 40 },
-            { name: "蓮花銀", price: 40 },
-            { name: "壽生蓮花座", price: 120 },
-            { name: "壽生花朵", price: 60 },
-            { name: "往生蓮花座", price: 120 },
-            { name: "往生花朵", price: 60 },
-            { name: "五路財神金", price: 80 },
-            { name: "土地公金", price: 80 }
+            { name: "太極金", price: 30 }, { name: "天尺金", price: 20 }, { name: "大壽金", price: 65 },
+            { name: "壽金", price: 40 }, { name: "二五金", price: 25 }, { name: "大福金", price: 25 },
+            { name: "天庫", price: 30 }, { name: "地庫", price: 30 }, { name: "水府", price: 30 },
+            { name: "補運錢", price: 55 }, { name: "改厄", price: 35 }, { name: "小往生", price: 55 },
+            { name: "銀紙", price: 30 }, { name: "更衣", price: 35 }, { name: "本命錢", price: 35 },
+            { name: "花仔錢", price: 40 }, { name: "地府錢", price: 35 }, { name: "燭2號", price: 180 },
+            { name: "庫錢", price: 20 }, { name: "十二元神金", price: 35 }, { name: "白虎錢", price: 35 },
+            { name: "甲馬", price: 35 }, { name: "神馬", price: 35 }, { name: "將軍錢", price: 35 },
+            { name: "過關錢", price: 35 }, { name: "路關錢", price: 35 }, { name: "蓮花金", price: 40 },
+            { name: "蓮花銀", price: 40 }, { name: "壽生蓮花座", price: 120 }, { name: "壽生花朵", price: 60 },
+            { name: "往生蓮花座", price: 120 }, { name: "往生花朵", price: 60 },
+            { name: "五路財神金", price: 80 }, { name: "土地公金", price: 80 }
         ];
 
-        // 定義信者資料 (新價格)
+        // 定義信者資料
         const productsDataBeliever = [
-            { name: "太極金", price: 35 },
-            { name: "天尺金", price: 25 },
-            { name: "大壽金", price: 70 },
-            { name: "壽金", price: 45 },
-            { name: "二五金", price: 30 },
-            { name: "大福金", price: 30 },
-            { name: "天府", price: 35 }, // 信者版改成天府
-            { name: "地庫", price: 35 },
-            { name: "水庫", price: 35 }, // 信者版使用水庫
-            { name: "補運錢", price: 60 },
-            { name: "改厄", price: 40 },
-            { name: "小往生", price: 60 },
-            { name: "銀紙", price: 35 },
-            { name: "更衣", price: 40 },
-            { name: "本命錢", price: 40 },
-            { name: "花仔錢", price: 45 },
-            { name: "地府錢", price: 40 },
-            { name: "燭2號", price: 220 },
-            { name: "庫錢", price: 25 },
-            { name: "十二元神金", price: 40 },
-            { name: "白虎錢", price: 40 },
-            { name: "甲馬", price: 40 },
-            { name: "神馬", price: 40 },
-            { name: "將軍錢", price: 40 },
-            { name: "過關錢", price: 40 },
-            { name: "路關錢", price: 40 },
-            { name: "蓮花金", price: 45 },
-            { name: "蓮花銀", price: 45 },
-            { name: "壽生蓮花座", price: 150 },
-            { name: "壽生花朵", price: 80 },
-            { name: "往生花朵座", price: 150 }, // 信者版改名為往生花朵座
-            { name: "往生花朵", price: 80 },
-            { name: "五路財神金", price: 85 },
-            { name: "土地公金", price: 85 },
-            { name: "燭3號", price: 150 } // 新增項目
+            { name: "太極金", price: 35 }, { name: "天尺金", price: 25 }, { name: "大壽金", price: 70 },
+            { name: "壽金", price: 45 }, { name: "二五金", price: 30 }, { name: "大福金", price: 30 },
+            { name: "天府", price: 35 }, { name: "地庫", price: 35 }, { name: "水庫", price: 35 },
+            { name: "補運錢", price: 60 }, { name: "改厄", price: 40 }, { name: "小往生", price: 60 },
+            { name: "銀紙", price: 35 }, { name: "更衣", price: 40 }, { name: "本命錢", price: 40 },
+            { name: "花仔錢", price: 45 }, { name: "地府錢", price: 40 }, { name: "燭2號", price: 220 },
+            { name: "庫錢", price: 25 }, { name: "十二元神金", price: 40 }, { name: "白虎錢", price: 40 },
+            { name: "甲馬", price: 40 }, { name: "神馬", price: 40 }, { name: "將軍錢", price: 40 },
+            { name: "過關錢", price: 40 }, { name: "路關錢", price: 40 }, { name: "蓮花金", price: 45 },
+            { name: "蓮花銀", price: 45 }, { name: "壽生蓮花座", price: 150 }, { name: "壽生花朵", price: 80 },
+            { name: "往生花朵座", price: 150 }, { name: "往生花朵", price: 80 },
+            { name: "五路財神金", price: 85 }, { name: "土地公金", price: 85 }, { name: "燭3號", price: 150 }
         ];
 
-        // 組合定義 (注意：燭2號已在最後，顯示邏輯會遵照此順序)
         const combos = {
             'A': {
-                "太極金": 1,
-                "天尺金": 2,
-                "大壽金": 1,
-                "壽金": 1,
-                "二五金": 1,
-                "大福金": 1,
-                "補運錢": 1,
-                "花仔錢": 1,
-                "十二元神金": 1,
-                "甲馬": 1,
-                "神馬": 1,
-                "將軍錢": 1,
-                "五路財神金": 1,
-                "土地公金": 1,
-                "燭2號": 1
+                "太極金": 1, "天尺金": 2, "大壽金": 1, "壽金": 1, "二五金": 1, "大福金": 1,
+                "補運錢": 1, "花仔錢": 1, "十二元神金": 1, "甲馬": 1, "神馬": 1, "將軍錢": 1,
+                "五路財神金": 1, "土地公金": 1, "燭2號": 1
             },
             'B': {
-                "太極金": 1,
-                "天尺金": 1,
-                "大壽金": 1,
-                "壽金": 1,
-                "二五金": 1,
-                "大福金": 1,
-                "補運錢": 1,
-                "五路財神金": 1,
-                "土地公金": 1,
-                "燭2號": 1
+                "太極金": 1, "天尺金": 1, "大壽金": 1, "壽金": 1, "二五金": 1, "大福金": 1,
+                "補運錢": 1, "五路財神金": 1, "土地公金": 1, "燭2號": 1
             }
         };
 
-        // 初始化狀態 (預設宮生)
-        let currentRole = 'gong_sheng'; // 'gong_sheng' or 'believer'
-        let items = productsDataGongSheng.map(p => ({ ...p, qty: 0 }));
-        let currentFilterMode = 'all'; // 'all', 'A', 'B'
+        // 初始化狀態 - 新增 decimalMode 追蹤該項目是否開啟小數功能
+        let currentRole = 'gong_sheng'; 
+        let items = productsDataGongSheng.map(p => ({ ...p, qty: 0, decimalMode: false }));
+        let currentFilterMode = 'all'; 
 
         const productListEl = document.getElementById('productList');
         const totalPriceEl = document.getElementById('totalPrice');
         const totalQtyEl = document.getElementById('totalQty');
-        const toastEl = document.getElementById('toast');
         const remarksEl = document.getElementById('remarks');
 
-        // 切換身分
         function switchRole(role) {
             if (currentRole === role) return;
 
-            // UI 邏輯：處理組合按鈕顯示
             const btnContainer = document.getElementById('combo-btn-container');
             const btnA = document.getElementById('btn-A');
             const btnB = document.getElementById('btn-B');
             const btnAll = document.getElementById('btn-all');
 
             if (role === 'believer') {
-                // 信者模式：隱藏 A/B 組合，強制切回顯示全部
                 btnA.style.display = 'none';
                 btnB.style.display = 'none';
                 btnContainer.classList.remove('grid-cols-3');
                 btnContainer.classList.add('grid-cols-1');
                 btnAll.innerText = "信者自選金紙";
-                
-                // 強制切換到 'all' 模式，避免停留在組合模式
                 applyCombo('all');
             } else {
-                // 宮生模式：顯示組合
-                btnA.style.display = ''; // 恢復預設
+                btnA.style.display = ''; 
                 btnB.style.display = '';
                 btnContainer.classList.remove('grid-cols-1');
                 btnContainer.classList.add('grid-cols-3');
                 btnAll.innerText = "自選金紙";
             }
 
-            // 1. 記錄目前數量的雜湊表 (以名稱為 key)
+            // 記錄目前數量與小數點設定，以供切換身分後保留
             const currentQtyMap = {};
             items.forEach(item => {
-                if (item.qty > 0) {
-                    currentQtyMap[item.name] = item.qty;
+                if (item.qty > 0 || item.decimalMode) {
+                    currentQtyMap[item.name] = { qty: item.qty, decimalMode: item.decimalMode };
                 }
             });
 
-            // 2. 切換資料來源
             currentRole = role;
             const newDataTemplate = role === 'believer' ? productsDataBeliever : productsDataGongSheng;
 
-            // 3. 建立新 items 陣列並嘗試恢復數量
             items = newDataTemplate.map(p => {
-                const preservedQty = currentQtyMap[p.name] || 0;
-                return { ...p, qty: preservedQty };
+                const preserved = currentQtyMap[p.name] || { qty: 0, decimalMode: false };
+                return { ...p, qty: preserved.qty, decimalMode: preserved.decimalMode };
             });
 
-            // 4. 更新UI樣式 (現在只需切換 active class，CSS會處理亮燈效果)
             document.getElementById('role-gong-sheng').className = `role-btn ${role === 'gong_sheng' ? 'active' : ''} px-3 py-1 rounded text-base`;
             document.getElementById('role-believer').className = `role-btn ${role === 'believer' ? 'active' : ''} px-3 py-1 rounded text-base`;
 
-            // 5. 重新渲染
             renderList();
         }
 
-        // 套用組合
         function applyCombo(mode) {
             currentFilterMode = mode;
-
-            // 更新按鈕樣式
             updateButtonStyles(mode);
 
-            // 無論切換到哪個模式（包含自選金紙），都先將所有數量歸零
-            items.forEach(item => item.qty = 0);
+            // 切換組合時重置數量與小數點設定
+            items.forEach(item => {
+                item.qty = 0;
+                item.decimalMode = false;
+            });
 
             if (mode !== 'all') {
-                // 如果是選組合，依照組合設定數量
                 const comboDef = combos[mode];
                 for (const [name, qty] of Object.entries(comboDef)) {
                     const item = items.find(i => i.name === name);
-                    if (item) {
-                        item.qty = qty;
-                    }
+                    if (item) item.qty = qty;
                 }
             }
-            // 如果是 'all' (自選金紙)，上面已經歸零了，直接渲染即可
             renderList();
         }
 
@@ -335,7 +259,6 @@
             const btnA = document.getElementById('btn-A');
             const btnB = document.getElementById('btn-B');
 
-            // Reset base styles
             const inactiveClass = "bg-stone-200 text-stone-600 border-stone-300";
             const activeClass = "bg-red-700 text-white border-red-800 ring-2 ring-yellow-400";
             const allActiveClass = "bg-yellow-500 text-white border-yellow-600 ring-2 ring-white";
@@ -345,22 +268,25 @@
             btnB.className = `font-bold py-2 px-1 rounded-lg border shadow-sm text-base transition ${activeMode === 'B' ? activeClass : inactiveClass}`;
         }
 
+        function toggleDecimalMode(index) {
+            items[index].decimalMode = !items[index].decimalMode;
+            // 關閉小數點功能時，自動將當前數量四捨五入為整數，避免隱藏的浮點數殘留
+            if (!items[index].decimalMode) {
+                items[index].qty = Math.round(items[index].qty);
+            }
+            renderList();
+        }
 
-        // 渲染列表
         function renderList() {
             productListEl.innerHTML = "";
-            
-            // 決定要顯示哪些項目
             let displayItems = [];
 
             if (currentFilterMode !== 'all') {
-                // 依照組合過濾，並***依照組合定義的順序顯示***
                 const comboDef = combos[currentFilterMode];
                 displayItems = Object.keys(comboDef)
                     .map(name => items.find(item => item.name === name))
-                    .filter(item => item); // 過濾掉 undefined (若該身分沒有該金紙)
+                    .filter(item => item); 
             } else {
-                // 顯示全部 (依照原始資料順序)
                 displayItems = items;
             }
 
@@ -376,6 +302,7 @@
 
             displayItems.forEach((item) => {
                 const realIndex = items.findIndex(i => i.name === item.name);
+                const subtotal = Math.round(item.price * item.qty * 10) / 10;
                 
                 const card = document.createElement('div');
                 card.className = `bg-white p-3 rounded-xl shadow-sm border-l-8 ${item.qty > 0 ? 'border-yellow-500 ring-1 ring-yellow-500/50' : 'border-stone-300'} mb-3 flex items-center justify-between transition-all duration-200`;
@@ -386,18 +313,26 @@
                         <div class="text-stone-500 text-lg">單價: $${item.price}</div>
                     </div>
                     
-                    <div class="flex flex-col items-end">
-                        <div class="flex items-center space-x-2 bg-stone-100 rounded-xl p-1">
-                            <button onclick="updateQty(${realIndex}, -1)" class="w-11 h-11 flex items-center justify-center bg-white border border-stone-300 rounded-lg text-red-600 active:bg-stone-200 tap-highlight-transparent shadow-sm">
+                    <div class="flex flex-col items-end w-40">
+                        <div class="flex items-center space-x-2 bg-stone-100 rounded-xl p-1 w-full justify-between">
+                            <button onclick="updateQty(${realIndex}, -1)" class="w-11 h-11 flex-shrink-0 flex items-center justify-center bg-white border border-stone-300 rounded-lg text-red-600 active:bg-stone-200 tap-highlight-transparent shadow-sm">
                                 <i class="fa-solid fa-minus text-xl"></i>
                             </button>
-                            <input type="number" value="${item.qty}" onchange="manualInput(${realIndex}, this.value)" class="w-12 text-center bg-transparent font-bold text-2xl focus:outline-none p-0 text-stone-800" inputmode="numeric">
-                            <button onclick="updateQty(${realIndex}, 1)" class="w-11 h-11 flex items-center justify-center bg-red-700 text-white rounded-lg active:bg-red-800 tap-highlight-transparent shadow-sm">
+                            <input type="number" value="${item.qty}" step="${item.decimalMode ? '0.1' : '1'}" onchange="manualInput(${realIndex}, this.value)" class="w-full text-center bg-transparent font-bold text-2xl focus:outline-none p-0 text-stone-800" inputmode="decimal">
+                            <button onclick="updateQty(${realIndex}, 1)" class="w-11 h-11 flex-shrink-0 flex items-center justify-center bg-red-700 text-white rounded-lg active:bg-red-800 tap-highlight-transparent shadow-sm">
                                 <i class="fa-solid fa-plus text-xl"></i>
                             </button>
                         </div>
-                        <div class="mt-1 text-lg font-bold ${item.qty > 0 ? 'text-red-700' : 'text-transparent'}">
-                            小計: $${(item.price * item.qty).toLocaleString()}
+                        
+                        <div class="flex justify-between items-center w-full mt-2">
+                            <!-- 小數點切換開關 -->
+                            <button onclick="toggleDecimalMode(${realIndex})" class="flex items-center justify-center space-x-1 text-sm px-2 py-1 rounded-md transition-colors tap-highlight-transparent ${item.decimalMode ? 'bg-blue-100 text-blue-700 font-bold border border-blue-300' : 'bg-stone-100 text-stone-400 border border-stone-200'}">
+                                <i class="fa-solid ${item.decimalMode ? 'fa-toggle-on text-base' : 'fa-toggle-off text-base'}"></i>
+                                <span>0.1</span>
+                            </button>
+                            <div class="text-lg font-bold ${item.qty > 0 ? 'text-red-700' : 'text-transparent'}">
+                                小計: $${subtotal.toLocaleString()}
+                            </div>
                         </div>
                     </div>
                 `;
@@ -406,25 +341,34 @@
             updateSummary();
         }
 
-        // 更新數量
         function updateQty(index, change) {
-            const newQty = items[index].qty + change;
+            // 根據是否開啟小數點模式決定增減幅度 (0.1 或 1)
+            const step = items[index].decimalMode ? 0.1 : 1;
+            let newQty = items[index].qty + (change * step);
+            
+            // 處理 JS 浮點數精度問題 (例如 0.1 + 0.2 變成 0.30000004)
+            newQty = Math.round(newQty * 10) / 10;
+            
             if (newQty >= 0) {
                 items[index].qty = newQty;
-                // 更新時保持目前的過濾狀態
                 renderList();
             }
         }
 
-        // 手動輸入數量
         function manualInput(index, value) {
-            let val = parseInt(value);
+            let val = parseFloat(value);
             if (isNaN(val) || val < 0) val = 0;
-            items[index].qty = val;
+
+            // 若未開啟小數模式，強制將輸入值轉為整數
+            if (!items[index].decimalMode) {
+                val = Math.round(val);
+            }
+
+            // 確保只保留一位小數
+            items[index].qty = Math.round(val * 10) / 10;
             renderList();
         }
 
-        // 更新總計
         function updateSummary() {
             let total = 0;
             let qty = 0;
@@ -432,33 +376,80 @@
                 total += item.price * item.qty;
                 qty += item.qty;
             });
+            
+            // 避免出現過長小數
+            total = Math.round(total * 10) / 10;
+            qty = Math.round(qty * 10) / 10;
+
             totalPriceEl.innerText = total.toLocaleString();
             totalQtyEl.innerText = qty;
         }
 
-        // 重置所有
-        function resetAll() {
-            if(confirm("確定要清除所有數量與備註嗎？")) {
-                items.forEach(item => item.qty = 0);
-                remarksEl.value = ""; // 清空備註
-                applyCombo('all'); // 重置回顯示全部
-                window.scrollTo(0,0);
+        // -- 自訂 Modal 邏輯 (取代 confirm) --
+        function showConfirmModal() {
+            const modal = document.getElementById('confirmModal');
+            const box = document.getElementById('confirmBox');
+            modal.classList.remove('hidden');
+            // 延遲一點點以觸發 CSS 動畫
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                box.classList.remove('scale-95');
+                box.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirmModal');
+            const box = document.getElementById('confirmBox');
+            modal.classList.add('opacity-0');
+            box.classList.remove('scale-100');
+            box.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        function executeReset() {
+            closeConfirmModal();
+            items.forEach(item => {
+                item.qty = 0;
+                item.decimalMode = false;
+            });
+            remarksEl.value = ""; 
+            applyCombo('all'); 
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // -- 自訂 Toast 邏輯 (取代 alert) --
+        function showCustomToast(message, type = 'success') {
+            const toastEl = document.getElementById('toast');
+            const toastIcon = document.getElementById('toastIcon');
+            const toastMsg = document.getElementById('toastMsg');
+
+            toastMsg.innerText = message;
+            if (type === 'error') {
+                toastIcon.className = "fa-solid fa-circle-exclamation text-5xl text-red-400 mb-3";
+            } else {
+                toastIcon.className = "fa-solid fa-check-circle text-5xl text-green-400 mb-3";
             }
+
+            toastEl.classList.remove('opacity-0');
+            setTimeout(() => {
+                toastEl.classList.add('opacity-0');
+            }, 2000);
         }
 
         // 複製明細
         function copySummary() {
             const selectedItems = items.filter(i => i.qty > 0);
             if (selectedItems.length === 0) {
-                alert("尚未選擇任何項目");
+                showCustomToast("尚未選擇任何項目", "error");
                 return;
             }
 
             let text = "【金紙費用明細】\n";
-            // 標註身分
             text += `身分: ${currentRole === 'gong_sheng' ? '宮生' : '信者'}\n`;
 
-            // 如果是組合模式，可以標記一下
             if (currentRole === 'gong_sheng') {
                  if (currentFilterMode === 'A') text += "(A:祝壽組合)\n";
                  if (currentFilterMode === 'B') text += "(B:祝壽組合)\n";
@@ -466,14 +457,16 @@
 
             let total = 0;
             selectedItems.forEach(item => {
-                const subtotal = item.price * item.qty;
+                // 修正小計的浮點數顯示
+                const subtotal = Math.round(item.price * item.qty * 10) / 10;
                 total += subtotal;
                 text += `${item.name}: ${item.qty} x $${item.price} = $${subtotal}\n`;
             });
             text += "----------------\n";
+            
+            total = Math.round(total * 10) / 10;
             text += `總金額: $${total}\n`;
             
-            // 加入備註
             const remarks = remarksEl.value.trim();
             if (remarks) {
                 text += `備註: ${remarks}\n`;
@@ -481,9 +474,10 @@
 
             text += `時間: ${new Date().toLocaleString('zh-TW', {hour12: false, month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'})}`;
 
-            // 複製邏輯
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(() => showToast()).catch(err => fallbackCopy(text));
+                navigator.clipboard.writeText(text)
+                    .then(() => showCustomToast("已複製", "success"))
+                    .catch(err => fallbackCopy(text));
             } else {
                 fallbackCopy(text);
             }
@@ -492,23 +486,19 @@
         function fallbackCopy(text) {
             const textArea = document.createElement("textarea");
             textArea.value = text;
+            // 將 textarea 移出畫面避免影響排版
+            textArea.style.position = 'fixed';
+            textArea.style.top = '-9999px';
             document.body.appendChild(textArea);
             textArea.focus();
             textArea.select();
             try {
                 document.execCommand('copy');
-                showToast();
+                showCustomToast("已複製", "success");
             } catch (err) {
-                alert('複製失敗，請手動截圖');
+                showCustomToast("複製失敗，請手動截圖", "error");
             }
             document.body.removeChild(textArea);
-        }
-
-        function showToast() {
-            toastEl.classList.remove('opacity-0');
-            setTimeout(() => {
-                toastEl.classList.add('opacity-0');
-            }, 2000);
         }
 
         // 初始渲染
